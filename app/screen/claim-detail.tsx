@@ -14,7 +14,7 @@ import TestimonialCard from "../src/components/Home/TestimonialCard";
 import ScreenContainer from "../src/components/ScreenContainer";
 import Colors from "../src/constants/Colors";
 
-export default async function ClaimDetailScreen() {
+export default function ClaimDetailScreen() {
   const tabs = ["Diajukan", "Diproses", "Ditanggung", "Ditolak"];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [symptoms, setSymptoms] = useState<string[]>([]);

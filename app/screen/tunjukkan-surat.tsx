@@ -3,16 +3,23 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useScan } from "../context/ScanContext";
 import UploadFile from "../src/components/Home/UploadFile";
+import Modal from "../src/components/Modal";
 import ScreenContainer from "../src/components/ScreenContainer";
 
-export default function TunjukkanSlipScreen() {
+const AI_API_URL =
+  process.env.AI_API_URL ||
+  "https://fastapi-ai-service-1081333106174.asia-southeast2.run.app/";
+
+export default function TunjukkanSuratAjuBandingScreen() {
   const router = useRouter();
 
   const [slipImage, setSlipImage] = useState<string | null>(null);
   const [invoiceImage, setInvoiceImage] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
   const { imageUriInvoicers } = useScan();
 
   const pickImage = async (type: "slip" | "invoice") => {
@@ -41,54 +48,120 @@ export default function TunjukkanSlipScreen() {
     }
   };
 
+  const [downloadFile, setDownloadFile] = useState<{
+    filename: string;
+    download_url: string;
+  } | null>(null);
+
+  const handleClickBuatAjuBanding = async () => {
+    try {
+      // Dummy body sesuai format backend
+      const body = {
+        nama: "arkananta",
+        no_polis: "123456",
+        alamat: "Jl. Dummy No. 1",
+        no_telepon: "08123456789",
+        tanggal_pengajuan: "2025-09-27",
+        nomor_klaim: "KLM123",
+        perihal_klaim: "Rawat inap",
+        alasan_penolakan: "Dokumen tidak lengkap",
+        alasan_banding: "Semua dokumen sudah lengkap",
+        nama_perusahaan_asuransi: "PT Asuransi Sehat Sentosa",
+      };
+
+      const res = await fetch(`${AI_API_URL}/surat-aju-banding`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || "Gagal membuat surat");
+      }
+
+      // ✅ simpan hasil agar UploadFile bisa render versi download
+      setDownloadFile({
+        filename: data.filename,
+        download_url: data.download_url,
+      });
+    } catch (err: any) {
+      console.error("❌ Gagal buat surat:", err);
+      Alert.alert("Error", err.message || "Gagal membuat surat");
+    }
+  };
+
   return (
     <ScreenContainer>
       {/* Body */}
       <View style={styles.title}>
         <View style={{ flexDirection: "row" }}>
-          <Text style={styles.titleBold}>Lihat dan Tunjukan Slip </Text>
+          <Text style={styles.titleBold}>Lihat dan Tunjukan Surat </Text>
           <Text style={styles.titleNormal}>untuk</Text>
         </View>
-        <Text style={styles.titleNormal}>Mendaftarkan Dirimu!</Text>
+        <Text style={styles.titleNormal}>Aju Banding!</Text>
       </View>
       <Text style={styles.subtitle}>
         Ketik atau ucapkan keluhanmu, dan kami bantu cek apakah kondisimu bisa
         ditanggung oleh asuransi.
       </Text>
 
-      {/* Download Slip */}
-      {/* Upload Slip */}
-      <UploadFile
-        namaFile="Slip Pendaftaran"
-        icon="download"
-        onChange={(uri) => setSlipImage(uri)}
-      />
-
       {/* Upload Invoice */}
-      <Text style={styles.sectionTitle}>
-        Sudah mendapat Dokumen/
-        <Text style={{ fontStyle: "italic" }}>Invoice</Text> RS?
+      <Text style={[styles.sectionTitle, { fontSize: 18 }]}>
+        Upload Surat Aju Banding
       </Text>
       <Text style={styles.desc}>Upload dokumen untuk disimpan</Text>
 
       <UploadFile
-        variant={"scan-invoicers"}
+        variant={"scan-netral"}
         uri={imageUriInvoicers}
-        namaFile="Invoice RS"
+        namaFile="Aju Banding"
         icon={"upload"}
         onChange={(uri) => setInvoiceImage(uri)}
       />
+
+      <Text style={[styles.sectionTitle, { fontSize: 18 }]}>
+        Minta AI untuk membuatkan surat
+      </Text>
+      <TouchableOpacity
+        style={[styles.button, { width: 268, aspectRatio: 268 / 50 }]}
+        onPress={() => {
+          handleClickBuatAjuBanding();
+        }}
+      >
+        <Text style={styles.buttonText}>Buatkan Surat Aju Banding</Text>
+        <Ionicons name="arrow-forward" size={18} color="#fff" />
+      </TouchableOpacity>
+
+      {downloadFile && (
+        <UploadFile
+          variant="scan-netral"
+          namaFile={downloadFile.filename}
+          icon="download"
+          uri={downloadFile.download_url} // kasih URL agar bisa dipakai handleDownload
+        />
+      )}
 
       {/* Button */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          router.push("/screen/coverage");
+          setShowModal(true);
         }}
       >
         <Text style={styles.buttonText}>Lanjutkan Proses</Text>
         <Ionicons name="arrow-forward" size={18} color="#fff" />
       </TouchableOpacity>
+      {showModal && (
+        <Modal
+          visible={showModal}
+          title="Ingin Request Tambahan?"
+          onClose={() => setShowModal(false)}
+          onTrue={() => router.push("/(tabs)")}
+          falseText="Tidak"
+          trueText="Tambah"
+        />
+      )}
     </ScreenContainer>
   );
 }
@@ -142,7 +215,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "700",
     color: "#111",
     marginTop: 20,
     marginBottom: 4,

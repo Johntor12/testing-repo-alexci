@@ -11,6 +11,7 @@ import "react-native-reanimated";
 import { AuthProvider } from "./context/AuthContext";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { DataDiriAsuransiProvider } from "./context/DataDiriAsuransiContext";
 import { KeluhanProvider } from "./context/KeluhanContext";
 import ScanProvider from "./context/ScanContext";
 
@@ -36,14 +37,16 @@ export default function RootLayout() {
       <AuthProvider>
         <KeluhanProvider>
           <ScanProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              {/* Auth stack */}
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="screen" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
+            <DataDiriAsuransiProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                {/* Auth stack */}
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="screen" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </DataDiriAsuransiProvider>
           </ScanProvider>
         </KeluhanProvider>
       </AuthProvider>

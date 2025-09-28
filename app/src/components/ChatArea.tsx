@@ -22,7 +22,7 @@ export interface Message {
 }
 
 interface ChatAreaProps {
-  url?: "bisabot" | "ai-insurance-guide";
+  url?: "bisabot" | "ai-insurance-guide" | "ai-claim-denial";
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }

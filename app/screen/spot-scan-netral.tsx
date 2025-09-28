@@ -15,8 +15,7 @@ export default function SpotScanScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg }}>
       <SpotScan
-        variant="scan-diagnosis"
-        nextRoute="/screen/diagnosis-form"
+        variant="scan-netral"
         onScan={handleScan}
         onUpload={handleUpload}
       />

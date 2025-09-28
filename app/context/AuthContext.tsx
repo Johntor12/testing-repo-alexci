@@ -37,8 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     AsyncStorage.getItem("token").then((savedToken) => {
       if (savedToken) {
-        setToken(savedToken); // ✅ set token supaya bisa dipakai nanti
-        // Optional: bisa fetch user, tapi dibungkus try-catch biar ga error
+        setToken(savedToken);
         fetch(`${backendUrl}/users/me`, {
           headers: { Authorization: `Bearer ${savedToken}` },
         })
@@ -113,18 +112,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     if (!email || !password || !username || !nomor_telepon) return false;
     try {
+      const body = { username, email, password, nomor_telepon };
+      console.log("Register body:", body); // 🔍 Debug request body
+
       const res = await fetch(`${backendUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, username, nomor_telepon }),
+        body: JSON.stringify({ username, email, password, nomor_telepon }),
       });
 
       const data = await res.json();
-      if (res.ok && data.username && data.email) {
+      console.log("Register status:", res.status);
+      console.log("Register response:", data);
+
+      if (!res.ok) {
+        // Backend error → gagal
+        return false;
+      }
+      if (data.username && data.email) {
         setUser({ name: data.username, email: data.email });
         return true;
       }
-      return false;
+      throw new Error("Unexpected response format");
     } catch (e) {
       console.error("Register error:", e);
       return false;

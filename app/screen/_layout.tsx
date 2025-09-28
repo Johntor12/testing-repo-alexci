@@ -33,6 +33,10 @@ export default function ScreenLayout() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="spot-scan-netral"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="selamat-menjalani-pemeriksaan"
           options={{ headerShown: false }}
         />

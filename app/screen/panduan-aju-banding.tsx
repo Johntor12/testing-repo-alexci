@@ -1,10 +1,12 @@
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingChat from "../src/components/Home/FloatingChat";
 import ScreenContainer from "../src/components/ScreenContainer";
 import StaticBox from "../src/components/StaticBox";
 
 export default function DaftarSistemRumahSakit() {
+  const [showModal, setShowModal] = useState(true);
   const router = useRouter();
   return (
     <ScreenContainer hasBack={true} scrollable={true}>
@@ -17,6 +19,13 @@ export default function DaftarSistemRumahSakit() {
           }
         />
       </View>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push("/screen/tunjukkan-surat")}
+      >
+        <Text style={styles.buttonText}>Lanjutkan Proses →</Text>
+      </TouchableOpacity>
       <View
         style={{
           position: "absolute",
@@ -50,5 +59,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     marginBottom: 16,
+  },
+  button: {
+    flex: 1,
+    width: "100%",
+    marginTop: 20,
+    backgroundColor: "#003366",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 80,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });

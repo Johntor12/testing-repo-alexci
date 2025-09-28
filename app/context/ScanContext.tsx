@@ -35,6 +35,9 @@ interface ScanContextType {
   setResultDiagnosis: (res: ScanResult | null) => void;
   imageUriDiagnosis: string | null;
   setImageUriDiagnosis: (uri: string | null) => void;
+
+  imageUriNetral: string | null;
+  setImageUriNetral: (uri: string | null) => void;
 }
 
 const ScanContext = createContext<ScanContextType | undefined>(undefined);
@@ -60,6 +63,8 @@ export default function ScanProvider({ children }: { children: ReactNode }) {
     null
   );
 
+  const [imageUriNetral, setImageUriNetral] = useState<string | null>(null);
+
   return (
     <ScanContext.Provider
       value={{
@@ -82,6 +87,8 @@ export default function ScanProvider({ children }: { children: ReactNode }) {
         setResultDiagnosis,
         imageUriDiagnosis,
         setImageUriDiagnosis,
+        imageUriNetral,
+        setImageUriNetral,
       }}
     >
       {children}

@@ -29,7 +29,7 @@ const UploadDiagnosisDokter = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push("/screen/chatbot")}
+        onPress={() => router.push("/screen/chatbot-guideline-dua")}
       >
         <Text style={styles.buttonText}>Cek Tanggapan</Text>
       </TouchableOpacity>

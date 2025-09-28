@@ -16,7 +16,12 @@ import {
 import Modal from "../Modal";
 
 interface SpotScanProps {
-  variant?: "scan-ktp" | "scan-asuransi" | "scan-invoicers" | "scan-diagnosis";
+  variant?:
+    | "scan-ktp"
+    | "scan-asuransi"
+    | "scan-invoicers"
+    | "scan-diagnosis"
+    | "scan-netral";
   endpoint?: string;
   nextRoute?: string;
   onScan: (uri: string) => void;
@@ -57,6 +62,8 @@ const SpotScan = ({
     setImageUriInvoicers,
     setResultDiagnosis,
     setImageUriDiagnosis,
+    imageUriNetral,
+    setImageUriNetral,
   } = useScan();
 
   // const { setResult } = useScan();
@@ -126,6 +133,8 @@ const SpotScan = ({
         setImageUriInvoicers(uri);
       } else if (variant === "scan-diagnosis") {
         setImageUriDiagnosis(uri);
+      } else {
+        setImageUriNetral(uri);
       }
     }
   };
@@ -143,26 +152,29 @@ const SpotScan = ({
         type: "image/jpeg",
       } as any);
 
-      const response = fetch(`${API_URL}/${variant}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      });
+      if (variant !== "scan-netral") {
+        const response = fetch(`${API_URL}/${variant}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        });
 
-      if (!(await response).ok) {
-        throw new Error(`Upload gagal, status ${(await response).status}`);
+        if (!(await response).ok) {
+          throw new Error(`Upload gagal, status ${(await response).status}`);
+        }
+
+        const data = await (await response).json();
+        console.log("Hasil scan KTP:", data);
+        if (variant === "scan-ktp") setResultKtp(data);
+        else if (variant === "scan-asuransi") setResultAsuransi(data);
+        else if (variant === "scan-invoicers") setResultInvoicers(data);
+        else if (variant === "scan-diagnosis") setResultDiagnosis(data);
       }
 
-      const data = await (await response).json();
-      console.log("Hasil scan KTP:", data);
-
-      if (variant === "scan-ktp") setResultKtp(data);
-      else if (variant === "scan-asuransi") setResultAsuransi(data);
-      else if (variant === "scan-invoicers") setResultInvoicers(data);
-      else if (variant === "scan-diagnosis") setResultDiagnosis(data);
-      router.push(nextRoute as never);
+      if (variant !== "scan-netral") router.push(nextRoute as never);
+      else router.back();
     } catch (error) {
       console.error("Gagal upload Data:", error);
     }

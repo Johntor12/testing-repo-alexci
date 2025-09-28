@@ -1,16 +1,34 @@
 import { useAuth } from "@/app/context/AuthContext";
 import { useScan } from "@/app/context/ScanContext";
+import * as FileSystem from "expo-file-system";
 import { usePathname, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export interface UploadFileProps {
   namaFile?: string;
   icon?: "upload" | "download";
   uri?: string | null;
   onChange?: (uri: string) => void;
-  variant?: "scan-ktp" | "scan-diagnosis" | "scan-asuransi" | "scan-invoicers";
+  variant?:
+    | "scan-ktp"
+    | "scan-diagnosis"
+    | "scan-asuransi"
+    | "scan-invoicers"
+    | "scan-netral";
 }
+
+const AI_API_URL =
+  process.env.AI_API_URL ||
+  "https://fastapi-ai-service-1081333106174.asia-southeast2.run.app";
 
 export default function UploadFile({
   namaFile = "KTP terbarumu",
@@ -27,31 +45,12 @@ export default function UploadFile({
     imageUriAsuransi,
     imageUriInvoicers,
     imageUriDiagnosis,
+    imageUriNetral,
   } = useScan();
   // const params = useLocalSearchParams<{ imageUriKtp?: string }>();
   const [image, setImage] = useState<string | null>(null);
 
   const dummyImage = "https://picsum.photos/600/400";
-
-  // const handleDownload = async () => {
-  //   if (icon === "download") {
-  //     // langsung set dummy image
-  //     setImage(dummyImage);
-  //     onChange?.(dummyImage);
-
-  //     // otomatis download ke local
-  //     try {
-  //       const fileUri =
-  //         FileSystem.documentDirectory + `${namaFile.replace(/\s+/g, "_")}.jpg`;
-  //       const result = await FileSystem.downloadAsync(dummyImage, fileUri);
-
-  //       Alert.alert("Download Berhasil", `File tersimpan di: ${result.uri}`);
-  //     } catch (err) {
-  //       console.error("Download gagal:", err);
-  //       Alert.alert("Error", "Gagal mendownload file");
-  //     }
-  //   }
-  // };
 
   const openSpotScan = () => {
     if (variant === "scan-ktp") {
@@ -74,6 +73,11 @@ export default function UploadFile({
         pathname: "/screen/spot-scan-diagnosis",
         params: { returnTo: pathname, variant },
       });
+    } else {
+      router.push({
+        pathname: "/screen/spot-scan-netral",
+        params: { returnTo: pathname, variant },
+      });
     }
   };
 
@@ -85,6 +89,7 @@ export default function UploadFile({
       else if (variant === "scan-asuransi") setImage(imageUriAsuransi);
       else if (variant === "scan-invoicers") setImage(imageUriInvoicers);
       else if (variant === "scan-diagnosis") setImage(imageUriDiagnosis);
+      else setImage(imageUriNetral);
     }
   }, [
     uri,
@@ -137,12 +142,69 @@ export default function UploadFile({
   //   }
   // };
 
+  async function handleDownload(
+    namaFile: string,
+    filename: string,
+    downloadUrl: string
+  ) {
+    try {
+      console.log("📥 Download request:", { filename, downloadUrl });
+
+      const response = await fetch(`${AI_API_URL}/download/${filename}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gagal download: ${response.status} - ${errText}`);
+      }
+
+      const blob = await response.blob();
+      const reader = new FileReader();
+
+      reader.onload = async () => {
+        try {
+          const base64Data = (reader.result as string).split(",")[1];
+          const safeDir = FileSystem.Directory;
+          const fileUri =
+            safeDir + `${namaFile.replace(/\s+/g, "_") || "file"}.pdf`;
+
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(fileUri);
+          } else {
+            Alert.alert("Download Berhasil", `File tersimpan di: ${fileUri}`);
+          }
+        } catch (err) {
+          console.error("❌ Error write file:", err);
+          Alert.alert("Error", "Gagal menyimpan file");
+        }
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (err: any) {
+      console.error("❌ Download error:", err);
+      Alert.alert("Error", err.message || "Gagal mengunduh file");
+    }
+  }
+
   return (
     <View>
       <Text style={styles.label}>{namaFile}</Text>
       <TouchableOpacity
         style={styles.uploadBox}
-        onPress={icon === "upload" ? openSpotScan : () => {}}
+        onPress={
+          icon === "upload"
+            ? openSpotScan
+            : () => {
+                // if (uri) {
+                //   // `uri` di sini = download_url dari response sebelumnya
+                //   handleDownload(namaFile, namaFile, uri);
+                // } else {
+                //   Alert.alert("Error", "Download URL tidak tersedia");
+                // }
+              }
+        }
       >
         {image && icon === "upload" ? (
           <Image source={{ uri: image }} style={styles.uploadImage} />

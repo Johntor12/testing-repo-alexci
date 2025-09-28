@@ -134,7 +134,7 @@ export default function Pilihasuransi() {
     <ScreenContainer scrollable={false}>
       {/* Header */}
       <View style={{ flexDirection: "row" }}>
-        <Text style={styles.headerText}>Pilih Rumah Sakit</Text>
+        <Text style={styles.headerText}>Pilih Asuransi</Text>
         <Text style={styles.subHeaderText}> yang </Text>
       </View>
       <Text style={styles.subHeaderText}>Menerima Asuransi</Text>

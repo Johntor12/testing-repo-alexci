@@ -19,58 +19,95 @@ export default function CoverageScreen() {
   >([]);
 
   useEffect(() => {
-    const fetchCoverage = async () => {
-      try {
-        const response = await fetch(`${API_AI_URL}/ai-coverage-display`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            diagnosis: resultDiagnosis || {},
-            asuransi: resultAsuransi || {},
-            invoice: resultInvoicers || {},
-            extra: {},
-          }),
-        });
+    const handler = setTimeout(() => {
+      if (resultDiagnosis) {
+        const fetchCoverage = async () => {
+          try {
+            const response = await fetch(`${API_AI_URL}/ai-coverage-display`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                diagnosis: resultDiagnosis || {},
+                asuransi: resultAsuransi || {},
+                invoice: resultInvoicers || {},
+                extra: {},
+              }),
+            });
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
-        }
+            if (!response.ok) {
+              throw new Error(`API Error: ${response.status}`);
+            }
 
-        const data = await response.json();
+            const data = await response.json();
 
-        // Buat table data dengan default value jika field null/undefined
-        const defaultVal = "Tidak tersedia";
-        const tableFormatted = [
-          { label: "Nama", value: data.nama || defaultVal },
-          { label: "No. Polis", value: data.no_polis || defaultVal },
-          { label: "Alamat", value: data.alamat || defaultVal },
-          { label: "No. Telepon", value: data.no_telepon || defaultVal },
-          {
-            label: "Tanggal Pengajuan",
-            value: data.tanggal_pengajuan || defaultVal,
-          },
-          { label: "Nomor Klaim", value: data.nomor_klaim || defaultVal },
-          { label: "Perihal Klaim", value: data.perihal_klaim || defaultVal },
-          {
-            label: "Alasan Penolakan",
-            value: data.alasan_penolakan || defaultVal,
-          },
-          { label: "Alasan Banding", value: data.alasan_banding || defaultVal },
-          {
-            label: "Nama Perusahaan Asuransi",
-            value: data.nama_perusahaan_asuransi || defaultVal,
-          },
-        ];
+            // Buat table data dengan default value jika field null/undefined
+            const defaultVal = [
+              { label: "Kategori", value: "Output" },
+              { label: "Jenis Layanan", value: "Rawat Jalan" },
+              { label: "Deskripsi Layanan", value: "MRI Otak, CT Scan" },
+              { label: "Status Pertanggungan", value: "Ditanggung" },
+              { label: "Presentasi Pertanggungan", value: "80%" },
+              { label: "Limit Maksimum", value: "Rp5.000.000 per tahun" },
+              { label: "Sisa Kuota", value: "Rp1.500.000" },
+              { label: "Estimasi biaya keluar", value: "Rp450.000" },
+              { label: "Alasan status", value: "Obat tidak masuk polis" },
+              {
+                label: "Tanggal Efektif Pertanggungan",
+                value: "1 Jan 2025 - 31 Des 2025",
+              },
+              { label: "Catatan Tambahan", value: "Catatan Tambahan" },
+            ];
 
-        setTableData(tableFormatted);
-      } catch (err) {
-        console.error("Gagal fetch coverage:", err);
-        // fallback table data
-        setTableData([{ label: "Error", value: "Tidak dapat mengambil data" }]);
+            const tableFormatted = [
+              { label: "Nama", value: data.nama || "Arka" },
+              { label: "No. Polis", value: data.no_polis || "21930102" },
+              {
+                label: "Alamat",
+                value: data.alamat || "Jl. Dr. SetiaBudi gg. cempaka II no 6a",
+              },
+              {
+                label: "No. Telepon",
+                value: data.no_telepon || "0812390921",
+              },
+              {
+                label: "Tanggal Pengajuan",
+                value: data.tanggal_pengajuan || Date.now(),
+              },
+              { label: "Nomor Klaim", value: data.nomor_klaim || "1200920" },
+              {
+                label: "Perihal Klaim",
+                value: data.perihal_klaim || "Sakit Kepala dan Migrain",
+              },
+              {
+                label: "Alasan Penolakan",
+                value: data.alasan_penolakan || "Belum memenuhi syarat",
+              },
+              {
+                label: "Alasan Banding",
+                value:
+                  data.alasan_banding || "Sakit kepala sudah terlalu parah",
+              },
+              {
+                label: "Nama Perusahaan Asuransi",
+                value: data.nama_perusahaan_asuransi || "PediaSure",
+              },
+            ];
+
+            setTableData(tableFormatted);
+          } catch (err) {
+            console.error("Gagal fetch coverage:", err);
+            // fallback table data
+            setTableData([
+              { label: "Error", value: "Tidak dapat mengambil data" },
+            ]);
+          }
+        };
+        fetchCoverage();
       }
+    }, 1000);
+    return () => {
+      clearTimeout(handler); // Cleanup the timeout on component unmount or dependency change
     };
-
-    fetchCoverage();
   }, [resultDiagnosis, resultAsuransi, resultInvoicers]);
 
   return (
